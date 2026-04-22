@@ -1,0 +1,39 @@
+name: CI - Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: # Permet de lancer le build manuellement
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Buildozer a besoin de main.py. On copie app.py si main.py n'existe pas.
+      - name: Prepare main.py
+        run: |
+          if [ ! -f main.py ]; then
+            cp app.py main.py
+          fi
+
+      - name: Build with Buildozer
+        uses: ArtemGr/buildozer-action@v1
+        id: buildozer
+        with:
+          workdir: .
+          buildozer_version: master
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FACTURrrr-debug-apk
+          path: bin/*.apk
